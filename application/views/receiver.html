@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<h1>Receiver</h1>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.15.2/axios.min.js"></script>
+<body>
+<textarea id="recMsg" name="txtrec" rows="10" cols="50" ></textarea>
+<br>
+<input type="submit" onclick="clearr()" value="CLEAR"/><br>
+<input type="submit" id="id1" value="RECEIVE"/><br>
+<input type="submit" onclick="decode()" value="DECODE"/>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+    function clearr()
+    {
+        var txt=document.getElementById('recMsg');
+        txt.value="";
+    }
+    function decode()
+    {
+        var wlen7=['01','26','09','20','17','14','25','02','27','10','21','18','08','03','28','11','15','19','04','22','12','16','05','23','13','06'];
+        var wlen9=['01','42','11','34','21','26','31','18','41','02','43','12','35','22','27','32','10','03','44','13','36','23','19','33','04','45'];
+        var temp;
+        var decode=[];
+        var txt=document.getElementById('recMsg');
+        var code=txt.value;
+        //console.log(typeof(code));
+        var len=code.length;
+        var i,j,t,k;
+        var wlen;
+        var ind;
+        i=0;j=0;k=0;
+        while(j<len)
+        {
+
+            if(code[j]=='$')
+            {
+                wlen=(j-i)/2;
+                if(wlen<5){
+                    temp=wlen7;
+                }
+                else{
+                    temp=wlen9;
+                }
+                for(t=i;t<j;t=t+2)
+                {
+                 ind=temp.indexOf(code[t]+code[t+1]);
+                    ind=ind+97;
+                    decode[k++]=String.fromCharCode(ind);
+
+                }
+              decode[k++]=' ';
+                j++;
+                i=j;
+            }
+                    else if(j==len-1)
+            {
+                wlen=(j-i+1)/2;
+                if(wlen<5){
+                    temp=wlen7;
+                }
+                else{
+                    temp=wlen9;
+                }
+                for(t=i;t<=j;t=t+2)
+                {
+                    ind=temp.indexOf(code[t]+code[t+1]);
+                    ind=ind+97;
+                    decode[k++]=String.fromCharCode(ind);
+
+                }
+                decode[k++]=' ';
+                j++;
+                i=j;
+            }
+            else{
+                j++;
+            }
+        }
+        var result=[];
+        var len2=decode.length;
+        for(i=0;i<len2;i++)
+        {
+            result+=decode[i];
+        }
+        txt.value=result;
+
+
+
+    }
+</script>
+<script>
+    $(function() {
+        //var $txtArea=$('#recMsg');
+        $(document).on('click', '#id1', function(){
+            $.ajax({
+                type: 'GET',
+                url: 'http://localhost:3000/api',
+                dataType: "json",
+                success: function (data) {
+                    //console.log('Delivered');
+                    console.log(data[0].msg);
+                    var msg=data[0].msg;
+
+                   $('#recMsg').val(msg);
+                   /* setTimeout(function(){
+                        location.reload();
+                    }, 200);*/
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
